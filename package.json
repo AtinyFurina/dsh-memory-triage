@@ -5,7 +5,24 @@
   "type": "module",
   "main": "lib/index.js",
   "files": [
-    "lib"
+    "lib",
+    "cordis.patch.yml"
   ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "memory",
+    "triage"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AtinyFurina/dsh-memory-triage.git"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "license": "GPL-3.0"
 }

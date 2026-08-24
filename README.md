@@ -1,5 +1,7 @@
 # dsh-memory-triage
 
+![banner](docs/banner.png)
+
 DeepSeek Harness 记忆分诊插件：自动判断记忆保留 / 归档，并自动路由到项目桶或总体桶。
 
 规则优先 + LLM 兜底。自动动作只做可恢复的归档，永不直接删除。
