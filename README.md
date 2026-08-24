@@ -78,4 +78,4 @@ node --test test/triage.test.mjs
 
 ## License
 
-MIT
+GPL-3.0
