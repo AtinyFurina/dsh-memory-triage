@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { classifyEntry, compileKeywordRe, parseLlmDecisions, buildLlmPrompt, DEFAULT_EXEMPT_KEYWORDS, DEFAULT_PROJECT_KEYWORDS } from "../lib/triage.js";
+import { classifyEntry, compileKeywordRe, parseLlmDecisions, buildLlmPrompt, DEFAULT_EXEMPT_KEYWORDS, DEFAULT_PROJECT_KEYWORDS, matchesPersona, parsePersonaTagDecisions, parsePersonaRewrite, buildPersonaRewritePrompt } from "../lib/triage.js";
 import { planClusters, buildMergePlan, dice, normTitle } from "../lib/merge.js";
 
 const exemptRe = compileKeywordRe(DEFAULT_EXEMPT_KEYWORDS);
@@ -99,4 +99,40 @@ test("buildMergePlan: keeper keeps richest, members archived, content capped", (
 test("dice/normTitle: whitespace and punctuation insensitive", () => {
   assert.equal(normTitle("A B-C（D）"), "abcd");
   assert.equal(dice("abc", "abcd"), 0.8);
+});
+
+// --- persona tagging ---
+
+test("matchesPersona: untagged global always visible; tagged visible only for its persona", () => {
+  assert.equal(matchesPersona([], "fairy"), true);
+  assert.equal(matchesPersona(["persona:fairy"], "fairy"), true);
+  assert.equal(matchesPersona(["persona:fairy"], "other"), false);
+  assert.equal(matchesPersona(["persona:fairy"], ""), true); // no persona set = all visible
+  assert.equal(matchesPersona(["x", "persona:other"], "fairy"), false);
+  assert.equal(matchesPersona(["x"], "fairy"), true);
+});
+
+test("parsePersonaTagDecisions: whitelists actions and tolerates prose", () => {
+  const raw = '前 [{"id":"a","action":"tag_persona"},{"id":"b","action":"keep"},{"id":"c","action":"delete"}] 后';
+  assert.deepEqual(parsePersonaTagDecisions(raw), [
+    { id: "a", action: "tag_persona" },
+    { id: "b", action: "keep" }
+  ]);
+  assert.deepEqual(parsePersonaTagDecisions("垃圾"), []);
+});
+
+test("parsePersonaRewrite: rewrite needs title+content, keep passes through", () => {
+  const raw = '[{"id":"a","action":"rewrite","title":"新题","content":"新内容"},{"id":"b","action":"rewrite","title":"","content":"缺"},{"id":"c","action":"keep"}]';
+  const out = parsePersonaRewrite(raw);
+  assert.deepEqual(out, [
+    { id: "a", action: "rewrite", title: "新题", content: "新内容" },
+    { id: "c", action: "keep", title: undefined, content: undefined }
+  ]);
+});
+
+test("buildPersonaRewritePrompt: injects description and lists entries", () => {
+  const entries = [{ id: "id-9", type: "preference", importance: 5, title: "T", content: "C" }];
+  const { messages } = buildPersonaRewritePrompt(entries, "傲娇猫娘助手");
+  assert.ok(messages[0].content[0].text.includes("傲娇猫娘助手"));
+  assert.ok(messages[1].content[0].text.includes("id-9"));
 });

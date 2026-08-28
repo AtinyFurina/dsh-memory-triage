@@ -1,6 +1,6 @@
 {
   "name": "dsh-memory-triage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DeepSeek Harness 记忆分诊插件：自动判断记忆保留/归档，并自动路由到项目桶或总体桶（规则优先 + LLM 兜底）",
   "type": "module",
   "main": "lib/index.js",
